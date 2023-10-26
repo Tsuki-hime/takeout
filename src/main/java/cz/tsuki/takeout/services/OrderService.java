@@ -35,4 +35,10 @@ public class OrderService {
         return withStatus;
     }
 
+    public void updateStatus(String newStatus, Long orderId){
+        Order order = orderRepository.findOrderByOrderID(orderId);
+        order.setStatus(newStatus);
+        orderRepository.save(order);
+    }
+
 }

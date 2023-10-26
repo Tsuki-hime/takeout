@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -32,7 +33,23 @@ public class APIController {
 
     @GetMapping("/orders")
     public ResponseEntity<?> getStatus(@RequestParam("status") String status) {
-        return ResponseEntity.status(200).body(orderService.getAllWithStatus(status));
+        if (Objects.equals(status, "done") || Objects.equals(status, "inprogress") || Objects.equals(status, "ordered")) {
+            return ResponseEntity.status(200).body(orderService.getAllWithStatus(status));
+        }
+        return ResponseEntity.status(422).body("Invalid status.");
+    }
+
+    @PatchMapping("/orders/{orderId}")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long orderId, @RequestParam String newStatus) {
+        Optional<Order> maybeOrder = Optional.ofNullable(orderService.getOrderById(orderId));
+        if (maybeOrder.isEmpty()) {
+            return ResponseEntity.status(404).body("No order with this id found.");
+        } else if (Objects.equals(newStatus, "done") || Objects.equals(newStatus, "inprogress") || Objects.equals(newStatus, "ordered")) {
+            orderService.updateStatus(newStatus, orderId);
+            return ResponseEntity.status(202).body("Status updated.");
+        } else {
+            return ResponseEntity.status(422).body("Invalid status.");
+        }
     }
 
 
